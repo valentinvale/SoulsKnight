@@ -62,7 +62,11 @@ ASoulslikeTutorialCharacter::ASoulslikeTutorialCharacter()
 
 	RollTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.Roll"));
 	IsRollingTag = FGameplayTag::RequestGameplayTag(FName("Character.isRolling"));
+	BlockTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.Block"));
+	IsBlockingTag = FGameplayTag::RequestGameplayTag(FName("Character.isBlocking"));
+	JumpTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.Jump"));
 	IsAirborneTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.isAirborne"));
+	IsGroundedTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.isGrounded"));
 }
 
 UAbilitySystemComponent* ASoulslikeTutorialCharacter::GetAbilitySystemComponent() const
@@ -159,6 +163,7 @@ void ASoulslikeTutorialCharacter::SetupPlayerInputComponent(UInputComponent* Pla
 		// Blocking
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this, &ASoulslikeTutorialCharacter::Block);
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Ongoing, this, &ASoulslikeTutorialCharacter::Block);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASoulslikeTutorialCharacter::StopBlocking);
 
 
 
@@ -210,7 +215,9 @@ void ASoulslikeTutorialCharacter::MyJump(const FInputActionValue& Value)
 {	
 	if (!AbilitySystemComponent->HasMatchingGameplayTag(IsRollingTag))
 	{
-		AbilitySystemComponent->AddLooseGameplayTag(IsAirborneTag);
+		AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(JumpTag));
+		AbilitySystemComponent->RemoveLooseGameplayTag(IsGroundedTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(IsBlockingTag);
 		ACharacter::Jump();
 	}
 	else
@@ -222,7 +229,12 @@ void ASoulslikeTutorialCharacter::MyJump(const FInputActionValue& Value)
 
 void ASoulslikeTutorialCharacter::MyStopJumping(const FInputActionValue& Value)
 {
-	AbilitySystemComponent->RemoveLooseGameplayTag(IsAirborneTag);
+	if (HasAuthority() && !AbilitySystemComponent->HasMatchingGameplayTag(IsRollingTag))
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTag(IsAirborneTag);
+		AbilitySystemComponent->AddLooseGameplayTag(IsGroundedTag);
+	}
+	
 	ACharacter::StopJumping();
 }
 
@@ -233,8 +245,12 @@ void ASoulslikeTutorialCharacter::Roll(const FInputActionValue& Value)
 if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		UE_LOG(LogTemplateCharacter, Log, TEXT("Player is rolling"));
-		if(HasAuthority())
+		if (HasAuthority())
+		{
 			AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(RollTag));
+			AbilitySystemComponent->RemoveLooseGameplayTag(IsBlockingTag);
+		}
+			
 	}
 	else
 	{
@@ -263,10 +279,22 @@ void ASoulslikeTutorialCharacter::Block(const FInputActionValue& Value)
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		UE_LOG(LogTemplateCharacter, Log, TEXT("Player is blocking"));
+		if (HasAuthority())
+			AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(BlockTag));
 	}
 	else
 	{
 		UE_LOG(LogTemplateCharacter, Log, TEXT("Player is not grounded"));
+	}
+}
+
+void ASoulslikeTutorialCharacter::StopBlocking(const FInputActionValue& Value)
+{
+	if (HasAuthority())
+	{
+		//AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(IsBlockingTag));
+		UE_LOG(LogTemplateCharacter, Log, TEXT("STOP BLOCKING"));
+		AbilitySystemComponent->RemoveLooseGameplayTag(IsBlockingTag);
 	}
 }
 

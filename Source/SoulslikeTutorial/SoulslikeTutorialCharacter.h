@@ -79,9 +79,25 @@ class ASoulslikeTutorialCharacter : public ACharacter, public IAbilitySystemInte
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	FGameplayTag IsRollingTag;
 
+	/** Block Tag */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FGameplayTag BlockTag;
+
+	/** IsBlocking Tag */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FGameplayTag IsBlockingTag;
+
+	/* Jump Tag */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FGameplayTag JumpTag;
+
 	/** IsAirborne Tag */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	FGameplayTag IsAirborneTag;
+
+	/** IsGrounded */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FGameplayTag IsGroundedTag;
 	
 
 
@@ -121,6 +137,8 @@ protected:
 	void Attack(const FInputActionValue& Value);
 
 	void Block(const FInputActionValue& Value);
+
+	void StopBlocking(const FInputActionValue& Value);
 			
 
 protected:
