@@ -67,6 +67,7 @@ ASoulslikeTutorialCharacter::ASoulslikeTutorialCharacter()
 	JumpTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.Jump"));
 	IsAirborneTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.isAirborne"));
 	IsGroundedTag = FGameplayTag::RequestGameplayTag(FName("Player.Action.isGrounded"));
+	AttackTag = FGameplayTag::RequestGameplayTag(FName("Character.Attack"));
 }
 
 UAbilitySystemComponent* ASoulslikeTutorialCharacter::GetAbilitySystemComponent() const
@@ -265,6 +266,12 @@ void ASoulslikeTutorialCharacter::Attack(const FInputActionValue& Value)
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		UE_LOG(LogTemplateCharacter, Log, TEXT("Player is attacking"));
+		if (HasAuthority())
+		{
+			AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+			AbilitySystemComponent->RemoveLooseGameplayTag(IsBlockingTag);
+		}
+			
 	}
 	else
 	{
@@ -279,8 +286,11 @@ void ASoulslikeTutorialCharacter::Block(const FInputActionValue& Value)
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		UE_LOG(LogTemplateCharacter, Log, TEXT("Player is blocking"));
-		if (HasAuthority())
+		if (HasAuthority() && !AbilitySystemComponent->HasMatchingGameplayTag(AttackTag))
+		{
 			AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(BlockTag));
+		}
+			
 	}
 	else
 	{

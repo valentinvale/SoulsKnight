@@ -98,6 +98,10 @@ class ASoulslikeTutorialCharacter : public ACharacter, public IAbilitySystemInte
 	/** IsGrounded */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	FGameplayTag IsGroundedTag;
+
+	/** Attack Tag */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FGameplayTag AttackTag;
 	
 
 
